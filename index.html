@@ -972,6 +972,26 @@ h1,h2,h3,h4,h5{font-family:var(--head);font-weight:600;line-height:1.08;letter-s
 }
 
 /* ============================================================
+   EXTRA SMALL PHONES
+   ============================================================ */
+@media (max-width:400px){
+  .wrap{padding:0 16px;}
+  .logo-text small{display:none;}
+  .logo{gap:8px;}
+  .hero-badge{font-size:11px;padding:6px 12px 6px 10px;gap:8px;}
+  .hero h1{margin-bottom:22px;}
+  .stat-num{font-size:1.7rem;}
+  .stat{padding:18px 16px;}
+  .service{grid-template-columns:32px minmax(0,1fr) 22px;gap:10px;padding:20px 12px;}
+  .service-desc{font-size:13px;}
+  .about-meta{grid-template-columns:1fr;}
+  .contact-panel{padding:26px 18px;}
+  .edu{padding:20px 18px;}
+  .proc,.skill,.ref{padding:20px 18px;}
+  .footer-cols{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ============================================================
    HERO — STATS FULL-WIDTH ROW BELOW GRID
    ============================================================ */
 .hero-stats-row{
@@ -1740,8 +1760,9 @@ h1,h2,h3,h4,h5{font-family:var(--head);font-weight:600;line-height:1.08;letter-s
   <svg id="dragonSvg" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="dgFinGrad" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.0935974, 0, 0, 0.188782, -20.55, 0)" spreadMethod="pad" x1="-819.2" y1="0" x2="819.2" y2="0">
-        <stop offset="0" style="stop-color:#a5f3fc;stop-opacity:0.95" />
-        <stop offset="1" style="stop-color:#04121a;stop-opacity:0" />
+        <stop offset="0" style="stop-color:#a5f3fc;stop-opacity:1" />
+        <stop offset="0.55" style="stop-color:#22d3ee;stop-opacity:0.85" />
+        <stop offset="1" style="stop-color:#0a4d5c;stop-opacity:0.55" />
       </linearGradient>
       <linearGradient id="dgSpineGradA" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.0229492, 0, 0, -0.0152893, 0, 0.05)" spreadMethod="pad" x1="-819.2" y1="0" x2="819.2" y2="0">
         <stop offset="0" style="stop-color:#a5f3fc;stop-opacity:1" />
@@ -1981,6 +2002,16 @@ var dgSvg   = document.getElementById('dragonSvg');
 var dgTrail = document.getElementById('dgTrail');
 var canHover = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 
+/* Responsive size factor: shrink the whole chain on small / phone screens
+   (covers real touch devices as well as narrow desktop / devtools widths) */
+function dgSizeFactor(){
+  var w = window.innerWidth;
+  if(w <= 480) return 0.4;
+  if(w <= 860) return 0.6;
+  if(w <= 1080) return 0.8;
+  return 1;
+}
+
 if(chainEl && dgSvg && dgTrail && canHover && !reduceMotion){
   var dgNS = "http://www.w3.org/2000/svg";
   var dgXlink = "http://www.w3.org/1999/xlink";
@@ -1990,6 +2021,9 @@ if(chainEl && dgSvg && dgTrail && canHover && !reduceMotion){
   }
   sizeDgSvg();
   window.addEventListener('resize', sizeDgSvg);
+
+  var dgScale = dgSizeFactor();
+  window.addEventListener('resize', function(){ dgScale = dgSizeFactor(); });
 
   var DN = 40;
   var dgElems = [];
@@ -2030,15 +2064,22 @@ if(chainEl && dgSvg && dgTrail && canHover && !reduceMotion){
     var e0 = dgElems[0];
     var ax = (Math.cos(3 * dgFrm) * dgRad * window.innerWidth) / window.innerHeight;
     var ay = (Math.sin(4 * dgFrm) * dgRad * window.innerHeight) / window.innerWidth;
-    e0.x += (ax + dgPointer.x - e0.x) / 10;
-    e0.y += (ay + dgPointer.y - e0.y) / 10;
+    /* tighter head catch-up (was /10) keeps the lead segment from lagging
+       far behind the pointer, which is what opened a gap on the inside
+       of a tight curl */
+    e0.x += (ax + dgPointer.x - e0.x) / 6;
+    e0.y += (ay + dgPointer.y - e0.y) / 6;
     for(var i = 1; i < DN; i++){
       var e = dgElems[i];
       var ep = dgElems[i - 1];
       var a = Math.atan2(e.y - ep.y, e.x - ep.x);
-      e.x += (ep.x - e.x + (Math.cos(a) * (100 - i)) / 5) / 4;
-      e.y += (ep.y - e.y + (Math.sin(a) * (100 - i)) / 5) / 4;
-      var s = (162 + 4 * (1 - i)) / 50;
+      /* smaller lateral spread (100-i)/7 instead of /5, and a faster
+         catch-up divisor (/3 instead of /4) pulls each link closer to
+         the one ahead of it so the chain stays visually continuous
+         even when it curls back on itself at full extension */
+      e.x += (ep.x - e.x + (Math.cos(a) * (100 - i)) / 7) / 3;
+      e.y += (ep.y - e.y + (Math.sin(a) * (100 - i)) / 7) / 3;
+      var s = ((162 + 4 * (1 - i)) / 50) * dgScale;
       e.use.setAttributeNS(
         null,
         "transform",
